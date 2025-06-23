@@ -1,0 +1,36 @@
+# Git files and directories - not needed in container
+.git
+.gitignore
+.gitattributes
+
+# Development and IDE files
+.vscode/
+
+# Documentation and README files
+*.md
+
+# Build artifacts and binaries
+# These will be built inside the container
+main
+*.exe
+dist/
+
+# Go specific files
+# Vendor directory if using vendoring
+vendor/
+
+# Environment and configuration files
+# Be careful with .env files - only ignore if they contain secrets
+.env
+
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Docker files themselves
+infra/
+build-and-push.sh
