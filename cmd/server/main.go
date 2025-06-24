@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -56,17 +57,7 @@ func run(log *zap.SugaredLogger) error {
 	log.Infow("Database status check completed successfully")
 
 	router := chi.NewRouter()
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Infow("Request received", "request", r)
-
-		if err := database.StatusCheck(context.Background(), db); err != nil {
-			response.RespondError(
-				w, http.StatusInternalServerError,
-				http.StatusText(http.StatusInternalServerError), "StatusInternalServerError", nil,
-			)
-		}
-		response.RespondSuccess(w, http.StatusOK, http.StatusText(http.StatusOK), nil)
-	})
+	registerRoutes(log, router, db)
 
 	server := http.Server{
 		Handler:      router,
@@ -104,4 +95,19 @@ func run(log *zap.SugaredLogger) error {
 	}
 
 	return nil
+}
+
+func registerRoutes(log *zap.SugaredLogger, r *chi.Mux, db *sql.DB) {
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Infow("Request received", "request", r)
+
+		if err := database.StatusCheck(context.Background(), db); err != nil {
+			response.RespondError(
+				w, http.StatusInternalServerError,
+				http.StatusText(http.StatusInternalServerError), "StatusInternalServerError", nil,
+			)
+		}
+
+		response.RespondSuccess(w, http.StatusOK, http.StatusText(http.StatusOK), nil)
+	})
 }
