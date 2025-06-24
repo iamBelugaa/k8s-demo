@@ -94,3 +94,25 @@ spec:
             - containerPort: {{ .Values.deploy.port.containerPort }}
               protocol: {{ .Values.deploy.port.protocol }}
               name: {{ .Values.deploy.port.name }}
+          # Readiness probe: checks if the app is ready to receive traffic
+          readinessProbe:
+            httpGet:
+              path: /health  # Your app should implement this endpoint
+              port: {{ .Values.deploy.port.containerPort }}
+              scheme: HTTP
+            initialDelaySeconds: 20  # Wait 20 seconds before first check
+            periodSeconds: 5         # Check every 5 seconds
+            timeoutSeconds: 3        # Timeout after 3 seconds
+            successThreshold: 1      # Consider ready after 1 successful check
+            failureThreshold: 3      # Consider not ready after 3 failed checks
+          # Liveness probe: checks if the app is still running
+          livenessProbe:
+            httpGet:
+              path: /health  # Same endpoint, but this restarts the pod if it fails
+              port: {{ .Values.deploy.port.containerPort }}
+              scheme: HTTP
+            initialDelaySeconds: 40  # Wait longer before first liveness check
+            periodSeconds: 10        # Check every 10 seconds
+            timeoutSeconds: 5        # Longer timeout for liveness
+            successThreshold: 1      # Consider healthy after 1 successful check
+            failureThreshold: 3      # Restart pod after 3 failed checks
