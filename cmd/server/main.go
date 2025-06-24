@@ -100,14 +100,17 @@ func run(log *zap.SugaredLogger) error {
 }
 
 func registerRoutes(log *zap.SugaredLogger, r *chi.Mux, db *sql.DB) {
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Infow("Request received", "request", r)
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		log.Infow("Request received", "path", r.URL.Path, "remoteAddr", r.RemoteAddr)
 
 		if err := database.StatusCheck(context.Background(), db, log); err != nil {
 			response.RespondError(
-				w, http.StatusInternalServerError,
-				http.StatusText(http.StatusInternalServerError), "StatusInternalServerError", nil,
+				w,
+				http.StatusInternalServerError,
+				"StatusInternalServerError",
+				http.StatusText(http.StatusInternalServerError), nil,
 			)
+			return
 		}
 
 		response.RespondSuccess(w, http.StatusOK, http.StatusText(http.StatusOK), nil)
