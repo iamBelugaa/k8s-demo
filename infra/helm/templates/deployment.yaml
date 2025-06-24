@@ -45,38 +45,38 @@ spec:
                   name: {{ include "helm.fullname" . }}-config
             - name: DB_TLS
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   key: DB_TLS
-                  name: {{ include "helm.fullname" . }}-secret
+                  name: {{ include "helm.fullname" . }}-config
             - name: DB_NAME
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   key: DB_NAME
-                  name: {{ include "helm.fullname" . }}-secret
+                  name: {{ include "helm.fullname" . }}-config
             - name: DB_MAX_IDLE_CONN
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   key: DB_MAX_IDLE_CONN
-                  name: {{ include "helm.fullname" . }}-secret
+                  name: {{ include "helm.fullname" . }}-config
             - name: DB_MAX_OPEN_CONN
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   key: DB_MAX_OPEN_CONN
-                  name: {{ include "helm.fullname" . }}-secret
+                  name: {{ include "helm.fullname" . }}-config
             - name: DB_SCHEME
               valueFrom:
-                secretKeyRef:
+                configMapKeyRef:
                   key: DB_SCHEME
-                  name: {{ include "helm.fullname" . }}-secret
+                  name: {{ include "helm.fullname" . }}-config
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: DB_HOST
+                  name: {{ include "helm.fullname" . }}-config
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
                   key: DB_USER
-                  name: {{ include "helm.fullname" . }}-secret
-            - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: DB_HOST
                   name: {{ include "helm.fullname" . }}-secret
             - name: DB_PASSWORD
               valueFrom:

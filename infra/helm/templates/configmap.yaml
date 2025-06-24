@@ -5,8 +5,14 @@ metadata:
   labels:
     app: {{ include "helm.name" . }}-config
 data:
-  SERVER_API_HOST: {{ .Values.config.server.apiHost }}
-  SERVER_READ_TIMEOUT: {{ .Values.config.server.readTimeout }}
-  SERVER_IDLE_TIMEOUT: {{ .Values.config.server.idleTimeout }}
-  SERVER_WRITE_TIMEOUT: {{ .Values.config.server.writeTimeout }}
-  SERVER_SHUTDOWN_TIMEOUT: {{ .Values.config.server.shutdownTimeout }}
+  SERVER_API_HOST: "{{ .Values.config.server.apiHost }}"
+  SERVER_READ_TIMEOUT: "{{ .Values.config.server.readTimeout }}"
+  SERVER_IDLE_TIMEOUT: "{{ .Values.config.server.idleTimeout }}"
+  SERVER_WRITE_TIMEOUT: "{{ .Values.config.server.writeTimeout }}"
+  SERVER_SHUTDOWN_TIMEOUT: "{{ .Values.config.server.shutdownTimeout }}"
+  DB_TLS: "{{ .Values.config.db.tls }}"
+  DB_NAME: "{{ .Values.config.db.name }}"
+  DB_SCHEME: "{{ .Values.config.db.scheme }}"
+  DB_MAX_IDLE_CONN: "{{ .Values.config.db.maxIdleConn }}"
+  DB_MAX_OPEN_CONN: "{{ .Values.config.db.maxOpenConn }}"
+  DB_HOST: "{{ printf "%s-%s" .Release.Name .Values.config.db.host }}"

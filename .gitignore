@@ -22,4 +22,5 @@ go.work.sum
 # env file
 *.env
 !.env.example
+infra/helm/charts
 infra/helm/values.yaml

@@ -26,8 +26,10 @@ func main() {
 		}
 	}()
 
-	if err := godotenv.Load(); err != nil {
-		log.Fatalw("error loading envs", "error", err)
+	if os.Getenv("ENV") == "DEVELOPMENT" {
+		if err := godotenv.Load(); err != nil {
+			log.Fatalw("error loading envs", "error", err)
+		}
 	}
 
 	log.Infow("Starting k8s-demo platform...")
@@ -43,7 +45,7 @@ func main() {
 
 func run(log *zap.SugaredLogger) error {
 	cfg := config.Load()
-	log.Infow("Configuration loaded successfully")
+	log.Infow("Configuration loaded successfully", "config", cfg)
 
 	db, err := database.Open(cfg.DB)
 	if err != nil {
@@ -51,7 +53,7 @@ func run(log *zap.SugaredLogger) error {
 	}
 	log.Infow("Database connection opened successfully")
 
-	if err := database.StatusCheck(context.Background(), db); err != nil {
+	if err := database.StatusCheck(context.Background(), db, log); err != nil {
 		return err
 	}
 	log.Infow("Database status check completed successfully")
@@ -101,7 +103,7 @@ func registerRoutes(log *zap.SugaredLogger, r *chi.Mux, db *sql.DB) {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Infow("Request received", "request", r)
 
-		if err := database.StatusCheck(context.Background(), db); err != nil {
+		if err := database.StatusCheck(context.Background(), db, log); err != nil {
 			response.RespondError(
 				w, http.StatusInternalServerError,
 				http.StatusText(http.StatusInternalServerError), "StatusInternalServerError", nil,
