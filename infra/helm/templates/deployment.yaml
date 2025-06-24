@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm.fullname" . }}-deploy
+  labels:
+    app: {{ include "helm.name" . }}-deploy
+spec:
+  replicas: {{ .Values.deploy.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "helm.name" . }}-pod
+  template:
+    metadata:
+      labels:
+        app: {{ include "helm.name" . }}-pod
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.deploy.image }}
+          env:
+            - name: SERVER_API_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_API_HOST
+                  name: {{ include "helm.fullname" . }}-config
+            - name: SERVER_READ_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_READ_TIMEOUT
+                  name: {{ include "helm.fullname" . }}-config
+            - name: SERVER_IDLE_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_IDLE_TIMEOUT
+                  name: {{ include "helm.fullname" . }}-config
+            - name: SERVER_WRITE_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_WRITE_TIMEOUT
+                  name: {{ include "helm.fullname" . }}-config
+            - name: SERVER_SHUTDOWN_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  key: SERVER_SHUTDOWN_TIMEOUT
+                  name: {{ include "helm.fullname" . }}-config
+            - name: DB_TLS
+              valueFrom:
+                secretKeyRef:
+                  key: DB_TLS
+                  name: {{ include "helm.fullname" . }}-secret
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: DB_NAME
+                  name: {{ include "helm.fullname" . }}-secret
+            - name: DB_MAX_IDLE_CONN
+              valueFrom:
+                secretKeyRef:
+                  key: DB_MAX_IDLE_CONN
+                  name: {{ include "helm.fullname" . }}-secret
+            - name: DB_MAX_OPEN_CONN
+              valueFrom:
+                secretKeyRef:
+                  key: DB_MAX_OPEN_CONN
+                  name: {{ include "helm.fullname" . }}-secret
+            - name: DB_SCHEME
+              valueFrom:
+                secretKeyRef:
+                  key: DB_SCHEME
+                  name: {{ include "helm.fullname" . }}-secret
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  key: DB_USER
+                  name: {{ include "helm.fullname" . }}-secret
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  key: DB_HOST
+                  name: {{ include "helm.fullname" . }}-secret
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: DB_PASSWORD
+                  name: {{ include "helm.fullname" . }}-secret
+          resources:
+            limits:
+              memory: {{ .Values.deploy.resources.limits.memory }}
+              cpu: {{ .Values.deploy.resources.limits.cpu }}
+            requests:
+              memory: {{ .Values.deploy.resources.requests.memory }}
+              cpu: {{ .Values.deploy.resources.requests.cpu }}
+          ports:
+            - containerPort: {{ .Values.deploy.port.containerPort }}
+              protocol: {{ .Values.deploy.port.protocol }}
+              name: {{ .Values.deploy.port.name }}
