@@ -2,6 +2,7 @@
   "cSpell.words": [
     "adduser",
     "appuser",
+    "automount",
     "extldflags",
     "Fatalw",
     "GOARCH",
@@ -14,7 +15,11 @@
     "myapp",
     "myusername",
     "Nilotpal",
+    "nindent",
+    "replicaset",
     "sslmode",
+    "tolerations",
+    "trunc",
     "tzdata",
     "zoneinfo"
   ]
