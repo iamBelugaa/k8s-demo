@@ -1,0 +1,7 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: {{ include "helm.fullname" . }}-pool
+spec:
+  addresses:
+    - {{ .Values.metallb.ipAddressPool }}
