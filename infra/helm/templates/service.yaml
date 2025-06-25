@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "helm.fullname" . }}-svc
+  annotations:
+    metallb.universe.tf/address-pool: {{ include "helm.fullname" . }}-pool
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ include "helm.name" . }}-pod
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: {{ .Values.service.protocol }}
+      targetPort: {{ .Values.deploy.port.containerPort }}
