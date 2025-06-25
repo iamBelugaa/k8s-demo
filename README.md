@@ -52,7 +52,7 @@ helm repo update
 
 # Install the application
 cd infra/helm
-helm install k8s-demo . --namespace default
+helm install k8s-demo . --namespace default --values ./path-to-yours-values-file
 
 # Wait for deployment to be ready
 kubectl wait --for=condition=available --timeout=300s deployment/k8s-demo-deploy
@@ -78,24 +78,73 @@ curl http://localhost:80/health
 
 ### Helm Values
 
-Customize the deployment by modifying `values.yaml`:
+Customize the deployment by creating a `values.yaml`:
 
 ```yaml
-# Replica count
-deploy:
-  replicaCount: 5
+# Service Configuration
+service:
+  port: 80                    # Service port
+  protocol: TCP               # Service protocol
+  type: ClusterIP             # Service type (ClusterIP/LoadBalancer)
 
-# Resource limits
+# Deployment Configuration
 deploy:
+  replicaCount: 5                           # Number of application replicas
+  image: iamnilotpal/k8s-demo:v2            # Container image
   resources:
     limits:
-      memory: '128Mi'
-      cpu: '500m'
+      memory: '128Mi'                       # Memory limit per pod
+      cpu: '500m'                           # CPU limit per pod
+    requests:
+      memory: '128Mi'                       # Memory request per pod
+      cpu: '500m'                           # CPU request per pod
+  port:
+    name: http                              # Port name
+    protocol: TCP                           # Port protocol
+    containerPort: 8080                     # Container port
 
-# Service configuration
-service:
-  port: 80
-  type: ClusterIP
+# Application Configuration
+config:
+  server:
+    readTimeout: 10s                        # HTTP read timeout
+    idleTimeout: 120s                       # HTTP idle timeout
+    writeTimeout: 10s                       # HTTP write timeout
+    shutdownTimeout: 20s                    # Graceful shutdown timeout
+    apiHost: "0.0.0.0:8080"                 # Server bind address
+  db:
+    tls: disable                            # Database TLS mode
+    name: k8s-demo                          # Database name
+    maxIdleConn: 5                          # Maximum idle connections
+    maxOpenConn: 20                         # Maximum open connections
+    scheme: postgres                        # Database scheme
+    host: postgresql                        # Database host
+
+# Database Secrets (Base64 encoded)
+secrets:
+  db:
+    user: cG9zdGdyZXNxbA==                 # Database username (postgresql)
+    password: cG9zdGdyZXNxbA==             # Database password (postgresql)
+
+# PostgreSQL Configuration
+postgresql:
+  auth:
+    database: k8s-demo                      # PostgreSQL database name
+    username: postgresql                    # PostgreSQL username
+    password: postgresql                    # PostgreSQL password
+  primary:
+    persistence:
+      enabled: true                         # Enable persistent storage
+      size: 1Gi                             # Storage size
+  architecture: standalone                  # PostgreSQL architecture
+
+# MetalLB Configuration
+metallb:
+  namespace: metallb-system                 # MetalLB namespace
+  ipAddressPool: 172.18.255.1-172.18.255.25 # IP address range for LoadBalancer
+  service:
+    port: 80                               # MetalLB service port
+    protocol: TCP                          # MetalLB service protocol
+    type: LoadBalancer                     # MetalLB service type
 ```
 
 ## Development
