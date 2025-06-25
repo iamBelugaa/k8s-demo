@@ -45,7 +45,7 @@ func Load() *APIConfig {
 			ReadTimeout:     getDurationOrFallback("SERVER_READ_TIMEOUT", ""),
 			IdleTimeout:     getDurationOrFallback("SERVER_WRITE_TIMEOUT", ""),
 			ShutdownTimeout: getDurationOrFallback("SERVER_SHUTDOWN_TIMEOUT", ""),
-			APIHost:         getEnvOrFallback("SERVER_API_HOST", "localhost:8000"),
+			APIHost:         getEnvOrFallback("SERVER_API_HOST", "localhost:8080"),
 		},
 	}
 }
