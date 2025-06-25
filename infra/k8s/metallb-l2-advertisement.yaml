@@ -1,0 +1,8 @@
+# apiVersion: metallb.io/v1beta1
+# kind: L2Advertisement
+# metadata:
+#   namespace: {{ .Values.metallb.namespace  }}
+#   name: {{ include "helm.fullname" . }}-advertisement
+# spec:
+#   ipAddressPools:
+#     - {{ include "helm.fullname" . }}-pool
