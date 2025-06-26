@@ -32,13 +32,8 @@ kubectl cluster-info --context kind-k8s-demo-cluster
 Install the NGINX ingress controller for Kind:
 
 ```bash
+# Install and Wait for ingress controller to be ready
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-
-# Wait for ingress controller to be ready
-kubectl wait --namespace ingress-nginx \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
 ```
 
 ### 3. Deploy with Helm
@@ -50,12 +45,9 @@ Deploy the application using Helm:
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 
-# Install the application
+# Install the application and Wait for deployment to be ready
 cd infra/helm
 helm install k8s-demo . --namespace default --values ./path-to-yours-values-file
-
-# Wait for deployment to be ready
-kubectl wait --for=condition=available --timeout=300s deployment/k8s-demo-deploy
 ```
 
 ### 4. Verify Installation
