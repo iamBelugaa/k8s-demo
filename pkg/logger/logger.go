@@ -1,40 +1,70 @@
 package logger
 
 import (
+	"context"
 	"os"
 
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-// Creates and configures a new Zap SugaredLogger.
-// It sets up a production-ready logger with JSON encoding, ISO8601 timestamps,
-// and includes service name and process ID as initial fields.
-func New(service string, outputPaths ...string) *zap.SugaredLogger {
-	encoderCfg := zap.NewProductionEncoderConfig()
+type Logger struct {
+	*zap.SugaredLogger
+}
 
-	encoderCfg.TimeKey = "timestamp"
-	encoderCfg.EncodeTime = zapcore.ISO8601TimeEncoder
+// NewWithTracing creates a new logger with tracing integration.
+func NewWithTracing(service string) *Logger {
+	config := zap.NewProductionConfig()
 
-	// Initialize the Zap configuration. This struct holds all the settings
-	// for building the logger.
-	config := zap.Config{
-		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
-		Development:       false,
-		DisableCaller:     false,
-		DisableStacktrace: false,
-		Sampling:          nil,
-		Encoding:          "json",
-		EncoderConfig:     encoderCfg,
-		OutputPaths:       []string{"stderr"},
-		ErrorOutputPaths:  []string{"stderr"},
-		InitialFields:     map[string]any{"service": service, "pid": os.Getpid()},
+	// Configure log level based on environment.
+	config.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
+
+	// Add service name and structured fields for observability.
+	config.InitialFields = map[string]any{
+		"service": service,
+		"version": "v1.0.0",
+		"pid":     os.Getpid(),
 	}
 
-	// Override the default output paths if custom 'outputPaths' are provided.
-	if len(outputPaths) != 0 {
-		config.OutputPaths = outputPaths
+	// Configure output format for better parsing by log aggregators.
+	config.EncoderConfig.LevelKey = "level"
+	config.EncoderConfig.CallerKey = "caller"
+	config.EncoderConfig.TimeKey = "timestamp"
+	config.EncoderConfig.MessageKey = "message"
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+
+	logger, err := config.Build()
+	if err != nil {
+		panic(err)
 	}
 
-	return zap.Must(config.Build()).Sugar()
+	return &Logger{logger.Sugar()}
+}
+
+// WithTrace adds tracing context to log entries.
+func (l *Logger) WithTrace(ctx context.Context) *Logger {
+	span := trace.SpanFromContext(ctx)
+	if span.SpanContext().IsValid() {
+		return &Logger{
+			l.SugaredLogger.With(
+				"trace_id", span.SpanContext().TraceID().String(),
+				"span_id", span.SpanContext().SpanID().String(),
+			),
+		}
+	}
+	return l
+}
+
+// LogRequestContext logs request details with tracing context.
+func (l *Logger) LogRequestContext(
+	ctx context.Context, method, path, remoteAddr string, statusCode int, duration float64,
+) {
+	l.WithTrace(ctx).Infow("HTTP request processed",
+		"method", method,
+		"path", path,
+		"duration_ms", duration,
+		"remote_addr", remoteAddr,
+		"status_code", statusCode,
+	)
 }
