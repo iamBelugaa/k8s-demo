@@ -15,7 +15,7 @@ type Metrics struct {
 
 func New() *Metrics {
 	return &Metrics{
-		// HTTP request metrics
+		// HTTP request metrics.
 		HTTPRequestsTotal: promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: "http_requests_total",
@@ -32,7 +32,7 @@ func New() *Metrics {
 			[]string{"method", "endpoint"},
 		),
 
-		// Database metrics
+		// Database metrics.
 		DatabaseConnections: promauto.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "database_connections_active",
@@ -48,7 +48,7 @@ func New() *Metrics {
 			[]string{"query_type"},
 		),
 
-		// Application metrics
+		// Application metrics.
 		ActiveRequests: promauto.NewGauge(
 			prometheus.GaugeOpts{
 				Name: "active_requests",

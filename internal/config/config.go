@@ -23,13 +23,21 @@ type DB struct {
 	Scheme       string
 }
 
-type APIConfig struct {
-	DB  *DB
-	Web *Web
+type AppConfig struct {
+	DB             *DB
+	Web            *Web
+	ServiceName    string
+	ServiceVersion string
+	Environment    string
+	JaegerEndpoint string
 }
 
-func Load() *APIConfig {
-	return &APIConfig{
+func Load() *AppConfig {
+	return &AppConfig{
+		ServiceName:    getEnvOrFallback("SERVICE_NAME", "k8s-demo"),
+		ServiceVersion: getEnvOrFallback("SERVICE_VERSION", "v0.1.0"),
+		Environment:    getEnvOrFallback("ENVIRONMENT", "DEVELOPMENT"),
+		JaegerEndpoint: getEnvOrFallback("JAEGER_ENDPOINT", "http://jaeger:4318/v1/traces"),
 		DB: &DB{
 			TLS:          getEnvOrFallback("DB_TLS", "disable"),
 			User:         getEnvOrFallback("DB_USER", "postgres"),
@@ -41,11 +49,11 @@ func Load() *APIConfig {
 			MaxOpenConns: getEnvIntOrFallback("DB_MAX_OPEN_CONN", 20),
 		},
 		Web: &Web{
-			WriteTimeout:    getDurationOrFallback("SERVER_IDLE_TIMEOUT", ""),
-			ReadTimeout:     getDurationOrFallback("SERVER_READ_TIMEOUT", ""),
-			IdleTimeout:     getDurationOrFallback("SERVER_WRITE_TIMEOUT", ""),
-			ShutdownTimeout: getDurationOrFallback("SERVER_SHUTDOWN_TIMEOUT", ""),
-			APIHost:         getEnvOrFallback("SERVER_API_HOST", "localhost:8080"),
+			APIHost:         getEnvOrFallback("SERVER_API_HOST", ":8080"),
+			ReadTimeout:     getDurationOrFallback("SERVER_READ_TIMEOUT", "10s"),
+			WriteTimeout:    getDurationOrFallback("SERVER_WRITE_TIMEOUT", "10s"),
+			IdleTimeout:     getDurationOrFallback("SERVER_IDLE_TIMEOUT", "120s"),
+			ShutdownTimeout: getDurationOrFallback("SERVER_SHUTDOWN_TIMEOUT", "20s"),
 		},
 	}
 }
