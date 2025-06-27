@@ -4,6 +4,12 @@ import (
 	"time"
 )
 
+const (
+	EnvProduction  string = "PRODUCTION"
+	EnvDevelopment string = "DEVELOPMENT"
+	EnvLookupKey   string = "ENVIRONMENT"
+)
+
 type Web struct {
 	APIHost         string
 	ReadTimeout     time.Duration
@@ -36,7 +42,7 @@ func Load() *AppConfig {
 	return &AppConfig{
 		ServiceName:    getEnvOrFallback("SERVICE_NAME", "k8s-demo"),
 		ServiceVersion: getEnvOrFallback("SERVICE_VERSION", "v0.1.0"),
-		Environment:    getEnvOrFallback("ENVIRONMENT", "DEVELOPMENT"),
+		Environment:    getEnvOrFallback(EnvLookupKey, EnvDevelopment),
 		JaegerEndpoint: getEnvOrFallback("JAEGER_ENDPOINT", "http://jaeger:4318/v1/traces"),
 		DB: &DB{
 			TLS:          getEnvOrFallback("DB_TLS", "disable"),

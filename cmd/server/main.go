@@ -15,7 +15,7 @@ import (
 
 func main() {
 	// Load environment variables in development.
-	if os.Getenv("ENVIRONMENT") != "PRODUCTION" {
+	if os.Getenv(config.EnvLookupKey) == config.EnvDevelopment {
 		if err := godotenv.Load(); err != nil {
 			fmt.Printf("error loading envs : %+v", err)
 			os.Exit(1)
