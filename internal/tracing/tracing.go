@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -76,28 +75,6 @@ func StartSpan(
 ) (context.Context, trace.Span) {
 	tracer := GetTracer(tracerName)
 	return tracer.Start(ctx, spanName, options...)
-}
-
-// StartHTTPSpan creates a span for HTTP operations with standard attributes.
-func StartHTTPSpan(ctx context.Context, method, route string) (context.Context, trace.Span) {
-	return StartSpan(ctx, "http-server", method+" "+route,
-		trace.WithSpanKind(trace.SpanKindServer),
-		trace.WithAttributes(
-			attribute.String("http.method", method),
-			attribute.String("http.route", route),
-		),
-	)
-}
-
-// StartDatabaseSpan creates a span for database operations.
-func StartDatabaseSpan(ctx context.Context, operation, table string) (context.Context, trace.Span) {
-	return StartSpan(ctx, "database", operation+" "+table,
-		trace.WithSpanKind(trace.SpanKindClient),
-		trace.WithAttributes(
-			attribute.String("db.operation", operation),
-			attribute.String("db.table", table),
-		),
-	)
 }
 
 // getSamplerForEnvironment returns appropriate sampling strategy based on environment.

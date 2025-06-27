@@ -3,6 +3,7 @@ package middlewares
 import (
 	"net/http"
 
+	"github.com/iamNilotpal/k8s-demo/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
@@ -16,7 +17,7 @@ func TracingMiddleware(serviceName string) func(next http.Handler) http.Handler 
 			ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
 
 			// Start new span.
-			tracer := otel.Tracer(serviceName)
+			tracer := tracing.GetTracer(serviceName)
 			ctx, span := tracer.Start(ctx, r.Method+" "+r.URL.Path)
 			defer span.End()
 
