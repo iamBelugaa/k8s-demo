@@ -3,6 +3,7 @@ package health_handlers
 import (
 	"database/sql"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/iamNilotpal/k8s-demo/internal/database"
@@ -129,6 +130,12 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		"service":      h.service,
 		"version":      h.version,
 		"timestamp":    time.Now().UTC(),
+		"nodeName":     os.Getenv("NODE_NAME"),
+		"pod": map[string]any{
+			"ip":        os.Getenv("POD_IP"),
+			"name":      os.Getenv("POD_NAME"),
+			"namespace": os.Getenv("POD_NAMESPACE"),
+		},
 		"checks": map[string]any{
 			"database": map[string]any{
 				"status":      "connected",

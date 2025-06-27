@@ -1,0 +1,231 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm.fullname" . }}-app-deployment
+  labels:
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: backend-api
+    app.kubernetes.io/part-of: {{ include "helm.name" . }}-platform
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+
+    app.kubernetes.io/tier: backend
+    app.kubernetes.io/layer: application
+    environment: {{ .Values.global.environment | default "development" | lower }}
+spec:
+  # REPLICA AND SCALING CONFIGURATION
+  replicas: {{ .Values.deploy.replicaCount | default 3 }}
+
+  # Deployment strategy for zero-downtime updates.
+  # RollingUpdate ensures we maintain availability during deployments.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "helm.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: backend-api
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "helm.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/component: backend-api
+        app.kubernetes.io/part-of: {{ include "helm.name" . }}-platform
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/layer: application
+        app.kubernetes.io/tier: backend
+        environment: {{ .Values.global.environment | default "development" | lower }}
+        pod.kubernetes.io/role: api-server
+
+      annotations:
+        # Prometheus scraping configuration.
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "{{ .Values.deploy.port.containerPort | default 8080 }}"
+    spec:
+      # Pod-level security context for enhanced security posture.
+      # Run as non-root user for security.
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+
+      # CONTAINER SPECIFICATION
+      containers:
+      - name: {{ .Chart.Name }}-api-server
+        image: {{ .Values.deploy.image | default "iamnilotpal/k8s-demo:latest" }}
+        imagePullPolicy: "IfNotPresent"
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsUser: 65534
+          runAsGroup: 65534
+          runAsNonRoot: true
+
+        # ENVIRONMENT VARIABLES
+        env:
+        # --------------- SERVER CONFIGURATION ---------------
+        - name: SERVER_API_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: SERVER_API_HOST
+        - name: SERVER_READ_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: SERVER_READ_TIMEOUT
+        - name: SERVER_IDLE_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: SERVER_IDLE_TIMEOUT
+        - name: SERVER_WRITE_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: SERVER_WRITE_TIMEOUT
+        - name: SERVER_SHUTDOWN_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: SERVER_SHUTDOWN_TIMEOUT
+
+        # --------------- DATABASE CONFIGURATION ---------------
+        - name: DB_TLS
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: DB_TLS
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: DB_NAME
+        - name: DB_SCHEME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: DB_SCHEME
+        - name: DB_MAX_IDLE_CONN
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: DB_MAX_IDLE_CONN
+        - name: DB_MAX_OPEN_CONN
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: DB_MAX_OPEN_CONN
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: DB_HOST
+
+        #  Database credentials from Secret
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "helm.fullname" . }}-app-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "helm.fullname" . }}-app-secrets
+              key: DB_PASSWORD
+
+        # --------------- OBSERVABILITY CONFIGURATION ---------------
+        - name: JAEGER_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: JAEGER_ENDPOINT
+        - name: SERVICE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: SERVICE_NAME
+        - name: SERVICE_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: SERVICE_VERSION
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "helm.fullname" . }}-app-config
+              key: ENVIRONMENT
+
+        # --------------- KUBERNETES-PROVIDED METADATA ---------------
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+
+        # RESOURCE MANAGEMENT
+        resources:
+          limits:
+            memory: {{ .Values.deploy.resources.limits.memory | default "512Mi" }}
+            cpu: {{ .Values.deploy.resources.limits.cpu | default "1000m" }}
+          requests:
+            memory: {{ .Values.deploy.resources.requests.memory | default "256Mi" }}
+            cpu: {{ .Values.deploy.resources.requests.cpu | default "250m" }}
+
+        # NETWORKING AND PORTS
+        ports:
+        - name: {{ .Values.deploy.port.name | default "http-api" }}
+          protocol: {{ .Values.deploy.port.protocol | default "TCP" }}
+          containerPort: {{ .Values.deploy.port.containerPort | default 8080 }}
+
+        # HEALTH CHECK CONFIGURATION
+        # Readiness probe determines if pod should receive traffic.
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.deploy.port.containerPort | default 8080 }}
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 10
+
+        # Liveness probe restarts unhealthy containers.
+        livenessProbe:
+          httpGet:
+            path: /health
+            scheme: HTTP
+            port: {{ .Values.deploy.port.containerPort | default 8080 }}
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+
+      # Graceful termination period
+      terminationGracePeriodSeconds: {{ .Values.deploy.terminationGracePeriodSeconds | default 60 }}
