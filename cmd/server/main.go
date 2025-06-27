@@ -27,7 +27,7 @@ func main() {
 	fmt.Printf("Configuration loaded successfully : %+v \n", cfg)
 
 	// Initialize structured logging with observability context.
-	log := logger.NewWithTracing(cfg.ServiceName)
+	log := logger.NewWithTracing(cfg.ServiceName, cfg.ServiceVersion)
 	defer func() {
 		if err := log.Sync(); err != nil {
 			log.Infow("sync error", "error", err)

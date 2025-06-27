@@ -14,7 +14,7 @@ type Logger struct {
 }
 
 // NewWithTracing creates a new logger with tracing integration.
-func NewWithTracing(service string) *Logger {
+func NewWithTracing(service string, version string) *Logger {
 	config := zap.NewProductionConfig()
 
 	// Configure log level based on environment.
@@ -23,7 +23,7 @@ func NewWithTracing(service string) *Logger {
 	// Add service name and structured fields for observability.
 	config.InitialFields = map[string]any{
 		"service": service,
-		"version": "v1.0.0",
+		"version": version,
 		"pid":     os.Getpid(),
 	}
 
