@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm.fullname" . }}-jaeger
+  labels:
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: jaeger
+    app.kubernetes.io/part-of: {{ include "helm.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "helm.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: jaeger
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "helm.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: jaeger
+        app.kubernetes.io/part-of: {{ include "helm.name" . }}
+        environment: {{ .Values.global.environment | default "development" | lower }}
+      annotations:
+        # Enable Prometheus scraping
+        prometheus.io/port: "14269"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Basic security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+
+      containers:
+      - name: jaeger
+        image: {{ .Values.observability.jaeger.image | default "jaegertracing/all-in-one:1.70.0" }}
+        imagePullPolicy: IfNotPresent
+
+        # Container-level security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          runAsUser: 10001
+          runAsGroup: 10001
+
+        ports:
+        - containerPort: 16686  # Jaeger UI
+          name: ui
+        - containerPort: 4318   # OTLP HTTP endpoint
+          name: otlp-http
+        - containerPort: 14269  # Admin port
+          name: admin
+
+        env:
+        - name: SPAN_STORAGE_TYPE
+          value: {{ .Values.observability.jaeger.storageType | default "memory" }}
+        - name: MEMORY_MAX_TRACES
+          value: {{ .Values.observability.jaeger.maxTraces | default "50000" | quote }}
+        - name: COLLECTOR_OTLP_ENABLED
+          value: "true"
+        - name: LOG_LEVEL
+          value: {{ if eq (.Values.global.environment | default "development" | lower) "production" }}"info"{{ else }}"debug"{{ end }}
+
+        resources:
+          requests:
+            cpu: {{ .Values.observability.jaeger.resources.requests.cpu | default "250m" }}
+            memory: {{ .Values.observability.jaeger.resources.requests.memory | default "256Mi" }}
+          limits:
+            cpu: {{ .Values.observability.jaeger.resources.limits.cpu | default "500m" }}
+            memory: {{ .Values.observability.jaeger.resources.limits.memory | default "512Mi" }}
+
+        # Simple health checks
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 14269
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 14269
+          initialDelaySeconds: 30
+          periodSeconds: 15
+
+        volumeMounts:
+        - name: jaeger-storage
+          mountPath: /tmp
+        - name: jaeger-data
+          mountPath: /jaeger
+
+      volumes:
+      - name: jaeger-storage
+        emptyDir: {}
+      - name: jaeger-data
+        persistentVolumeClaim:
+          claimName: {{ include "helm.fullname" . }}-jaeger-pvc

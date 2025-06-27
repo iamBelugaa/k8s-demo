@@ -33,7 +33,6 @@ func New(config *TracingConfig) (func(context.Context) error, error) {
 	}
 
 	// Create resource with service information.
-	// This metadata helps identify traces in observability backend.
 	resource := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(config.ServiceName),
@@ -87,7 +86,7 @@ func getSamplerForEnvironment(environment string) sdktrace.Sampler {
 		// In development, sample 100% for complete debugging visibility.
 		return sdktrace.AlwaysSample()
 	default:
-		// In other environment, sample 50% for complete debugging visibility.
+		// In other environment, sample 50%.
 		return sdktrace.TraceIDRatioBased(0.5)
 	}
 }

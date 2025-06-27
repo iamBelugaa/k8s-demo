@@ -145,7 +145,6 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	// Return successful health check response.
 	response.RespondSuccess(w, http.StatusOK, "Service healthy", healthData)
 
 	totalDuration := time.Since(start)
