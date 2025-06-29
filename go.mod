@@ -1,4 +1,4 @@
-module github.com/iamNilotpal/k8s-demo
+module github.com/iamBelugaa/k8s-demo
 
 go 1.24.2
 

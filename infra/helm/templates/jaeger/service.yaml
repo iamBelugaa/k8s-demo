@@ -3,17 +3,15 @@ kind: Service
 metadata:
   name: {{ include "helm.fullname" . }}-jaeger-svc
   labels:
-    app.kubernetes.io/name: {{ include "helm.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: jaeger
-    app.kubernetes.io/part-of: {{ include "helm.name" . }}
+    app.kubernetes.io/name: {{ include "helm.name" . }}
     environment: {{ .Values.global.environment | default "development" | lower }}
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: {{ include "helm.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: jaeger
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
   ports:
   - name: ui
     port: 16686

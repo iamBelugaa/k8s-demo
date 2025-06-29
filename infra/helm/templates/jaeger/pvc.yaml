@@ -3,10 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ include "helm.fullname" . }}-jaeger-pvc
   labels:
-    app.kubernetes.io/name: {{ include "helm.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: jaeger
-    app.kubernetes.io/part-of: {{ include "helm.name" . }}
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
 spec:
   accessModes:
     - ReadWriteOnce
