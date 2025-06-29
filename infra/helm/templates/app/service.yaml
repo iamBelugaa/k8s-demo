@@ -3,12 +3,8 @@ kind: Service
 metadata:
   name: {{ include "helm.fullname" . }}-api-service
   labels:
-    app.kubernetes.io/name: {{ include "helm.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: backend-service
-    app.kubernetes.io/part-of: {{ include "helm.name" . }}-platform
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/name: {{ include "helm.name" . }}
     environment: {{ .Values.global.environment | default "development" | lower }}
   annotations:
     prometheus.io/scrape: "true"
@@ -17,9 +13,11 @@ metadata:
 spec:
   type: {{ .Values.service.type | default "ClusterIP" }}
   selector:
-    app.kubernetes.io/component: backend-api
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: {{ include "helm.name" . }}
+      labels:
+        app.kubernetes.io/component: backend-api
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/name: {{ include "helm.name" . }}
+        environment: {{ .Values.global.environment | default "development" | lower }}
   ports:
   - name: http
     port: {{ .Values.service.port | default 80 }}

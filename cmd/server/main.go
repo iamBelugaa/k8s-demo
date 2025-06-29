@@ -14,7 +14,6 @@ import (
 )
 
 func main() {
-	// Load environment variables in development.
 	if os.Getenv(config.EnvLookupKey) == config.EnvDevelopment {
 		if err := godotenv.Load(); err != nil {
 			fmt.Printf("error loading envs : %+v", err)
@@ -22,11 +21,9 @@ func main() {
 		}
 	}
 
-	// Load configuration.
 	cfg := config.Load()
 	fmt.Printf("Configuration loaded successfully : %+v \n", cfg)
 
-	// Initialize structured logging with observability context.
 	log := logger.NewWithTracing(cfg.ServiceName, cfg.ServiceVersion)
 	defer func() {
 		if err := log.Sync(); err != nil {
@@ -36,7 +33,6 @@ func main() {
 
 	log.Infow("Starting k8s-demo platform with observability...")
 
-	// Run the application with proper error handling.
 	if err := run(log, cfg); err != nil {
 		log.Errorw("startup error", "error", err)
 		if err := log.Sync(); err != nil {
@@ -47,27 +43,22 @@ func main() {
 }
 
 func run(log *logger.Logger, cfg *config.AppConfig) error {
-	// Create application context for graceful shutdown.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Initialize and start the server with observability.
 	srv, err := server.New(ctx, cfg, log)
 	if err != nil {
 		return err
 	}
 
-	// Setup graceful shutdown.
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
-	// Start server in goroutine.
 	serverErrors := make(chan error, 1)
 	go func() {
 		serverErrors <- srv.Start()
 	}()
 
-	// Wait for shutdown signal or server error.
 	select {
 	case err := <-serverErrors:
 		return err

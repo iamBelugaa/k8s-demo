@@ -15,7 +15,6 @@ import (
 	"github.com/iamNilotpal/k8s-demo/pkg/logger"
 )
 
-// Server represents our HTTP server with all dependencies.
 type Server struct {
 	db         *sql.DB
 	httpServer *http.Server
@@ -26,7 +25,6 @@ type Server struct {
 }
 
 func New(ctx context.Context, cfg *config.AppConfig, log *logger.Logger) (*Server, error) {
-	// Initialize tracing using values from the centralized configuration.
 	shutdown, err := tracing.New(
 		&tracing.TracingConfig{
 			ServiceName:    cfg.ServiceName,
@@ -47,17 +45,14 @@ func New(ctx context.Context, cfg *config.AppConfig, log *logger.Logger) (*Serve
 		)
 	}
 
-	// Initialize metrics collection for performance monitoring.
 	appMetrics := metrics.New()
 	log.Infow("Metrics initialized successfully")
 
-	// Initialize database connection.
 	db, err := database.Open(cfg.DB)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	// Verify database connectivity during startup with tracing context.
 	dbCtx, dbSpan := tracing.StartSpan(ctx, cfg.ServiceName, "startup_check")
 	if err := database.StatusCheck(dbCtx, db, log); err != nil {
 		dbSpan.End()
@@ -66,7 +61,6 @@ func New(ctx context.Context, cfg *config.AppConfig, log *logger.Logger) (*Serve
 	dbSpan.End()
 	log.Infow("Database connection verified successfully")
 
-	// Create HTTP server using centralized web configuration.
 	router := chi.NewRouter()
 	handlers.SetupRoutes(&handlers.Config{
 		DB:      db,
@@ -95,7 +89,6 @@ func New(ctx context.Context, cfg *config.AppConfig, log *logger.Logger) (*Serve
 	}, nil
 }
 
-// Start begins serving HTTP requests using configuration values.
 func (s *Server) Start() error {
 	s.logger.Infow("server starting with full observability",
 		"address", s.httpServer.Addr,
@@ -114,28 +107,23 @@ func (s *Server) Start() error {
 	return nil
 }
 
-// Shutdown gracefully terminates the server and all observability components.
 func (s *Server) Shutdown(ctx context.Context) error {
 	s.logger.Infow("initiating graceful shutdown",
 		"service", s.config.ServiceName,
 		"shutdown_timeout", s.config.Web.ShutdownTimeout,
 	)
 
-	// Create timeout context using the configured shutdown timeout.
 	shutdownCtx, cancel := context.WithTimeout(ctx, s.config.Web.ShutdownTimeout)
 	defer cancel()
 
-	// Shutdown HTTP server first to stop accepting new requests.
 	if err := s.httpServer.Shutdown(shutdownCtx); err != nil {
 		return fmt.Errorf("could not stop server gracefully: %w", err)
 	}
 
-	// Close database connection to free up database resources.
 	if err := s.db.Close(); err != nil {
 		s.logger.Warnw("error closing database connection", "error", err)
 	}
 
-	// Shutdown tracing to flush any remaining spans to the tracing backend.
 	if err := s.shutdown(shutdownCtx); err != nil {
 		s.logger.Warnw("error shutting down tracing", "error", err)
 	}

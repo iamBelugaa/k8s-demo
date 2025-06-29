@@ -23,16 +23,12 @@ type Config struct {
 }
 
 func SetupRoutes(cfg *Config) {
-	// Add middleware stack for reliability and observability.
 	cfg.Router.Use(middleware.RequestID)
 	cfg.Router.Use(middleware.RealIP)
 	cfg.Router.Use(middleware.Logger)
 	cfg.Router.Use(middleware.Recoverer)
 
-	// Records detailed metrics for each request.
 	cfg.Router.Use(middlewares.MetricsMiddleware(cfg.Metrics))
-
-	// Creates distributed trace spans for each request.
 	cfg.Router.Use(middlewares.TracingMiddleware(cfg.Service))
 
 	healthHandlers := health_handlers.New(&health_handlers.Config{
@@ -43,9 +39,6 @@ func SetupRoutes(cfg *Config) {
 		Metrics: cfg.Metrics,
 	})
 
-	// Expose metrics endpoint for Prometheus scraping.
 	cfg.Router.Handle("/metrics", promhttp.Handler())
-
-	// Application routes with full observability integration.
 	cfg.Router.Get("/health", healthHandlers.HealthCheck)
 }

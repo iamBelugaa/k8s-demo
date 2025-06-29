@@ -40,13 +40,10 @@ func New(cfg *Config) *handler {
 	}
 }
 
-// HealthCheck returns a handler for health check endpoint with observability.
 func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
-	// Create a tracing span for the entire health check operation.
 	ctx, span := tracing.StartSpan(r.Context(), h.service, "health_check")
 	defer span.End()
 
-	// Add detailed attributes to the health check span for operational visibility.
 	span.SetAttributes(
 		attribute.String("operation.type", "health_check"),
 		attribute.String("http.method", r.Method),
@@ -54,7 +51,6 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		attribute.String("http.remote_addr", r.RemoteAddr),
 	)
 
-	// Record the start time for both metrics and logging.
 	start := time.Now()
 	h.log.WithTrace(ctx).Infow("Health check requested",
 		"path", r.URL.Path,
@@ -62,7 +58,6 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		"remote_addr", r.RemoteAddr,
 	)
 
-	// Perform database connectivity check with dedicated tracing.
 	dbStart := time.Now()
 	dbCtx, dbSpan := tracing.StartSpan(ctx, h.service, "health_check_database")
 	dbSpan.SetAttributes(
@@ -71,13 +66,12 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err := database.StatusCheck(dbCtx, h.db, h.log); err != nil {
-		// Record database failure metrics and tracing information.
 		dbDuration := time.Since(dbStart).Seconds()
 		h.metrics.RecordDatabaseQuery("health_check", dbDuration)
 
-		// Add error information to both database span and main health check span.
 		dbSpan.RecordError(err)
 		dbSpan.SetAttributes(attribute.Bool("db.healthy", false))
+
 		span.RecordError(err)
 		span.SetAttributes(attribute.Bool("health_check.passed", false))
 
@@ -102,7 +96,6 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Record successful database connectivity metrics.
 	dbDuration := time.Since(dbStart).Seconds()
 	h.metrics.RecordDatabaseQuery("health_check", dbDuration)
 	dbSpan.SetAttributes(
@@ -111,11 +104,9 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	)
 	dbSpan.End()
 
-	// Collect database statistics for operational visibility.
 	stats := h.db.Stats()
 	h.metrics.DatabaseConnections.Set(float64(stats.OpenConnections))
 
-	// Add database statistics to the main health check span.
 	span.SetAttributes(
 		attribute.Int("db.connections.open", stats.OpenConnections),
 		attribute.Int("db.connections.idle", stats.Idle),
@@ -123,7 +114,6 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		attribute.Bool("health_check.passed", true),
 	)
 
-	// Create comprehensive health response with operational data.
 	healthData := map[string]any{
 		"uptime_check": "passed",
 		"status":       "healthy",
@@ -163,7 +153,6 @@ func (h *handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		"db_connections_in_use", stats.InUse,
 	)
 
-	// Record final span attributes for the complete health check.
 	span.SetAttributes(
 		attribute.Float64("health_check.total_duration_seconds", totalDuration.Seconds()),
 		attribute.Float64("health_check.db_duration_seconds", dbDuration),

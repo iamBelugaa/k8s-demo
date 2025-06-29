@@ -4,62 +4,39 @@ metadata:
   name: {{ include "helm.fullname" . }}-app-deployment
   labels:
     app.kubernetes.io/name: {{ include "helm.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: backend-api
-    app.kubernetes.io/part-of: {{ include "helm.name" . }}-platform
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-
-    app.kubernetes.io/tier: backend
-    app.kubernetes.io/layer: application
     environment: {{ .Values.global.environment | default "development" | lower }}
 spec:
-  # REPLICA AND SCALING CONFIGURATION
   replicas: {{ .Values.deploy.replicaCount | default 3 }}
-
-  # Deployment strategy for zero-downtime updates.
-  # RollingUpdate ensures we maintain availability during deployments.
   strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 1
-
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "helm.name" . }}
-      app.kubernetes.io/instance: {{ .Release.Name }}
       app.kubernetes.io/component: backend-api
-
+      app.kubernetes.io/version: {{ .Chart.AppVersion }}
+      app.kubernetes.io/name: {{ include "helm.name" . }}
+      environment: {{ .Values.global.environment | default "development" | lower }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "helm.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/version: {{ .Chart.AppVersion }}
         app.kubernetes.io/component: backend-api
-        app.kubernetes.io/part-of: {{ include "helm.name" . }}-platform
-        app.kubernetes.io/managed-by: {{ .Release.Service }}
-        app.kubernetes.io/layer: application
-        app.kubernetes.io/tier: backend
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/name: {{ include "helm.name" . }}
         environment: {{ .Values.global.environment | default "development" | lower }}
-        pod.kubernetes.io/role: api-server
-
       annotations:
-        # Prometheus scraping configuration.
         prometheus.io/scrape: "true"
         prometheus.io/path: "/metrics"
         prometheus.io/port: "{{ .Values.deploy.port.containerPort | default 8080 }}"
     spec:
-      # Pod-level security context for enhanced security posture.
-      # Run as non-root user for security.
       securityContext:
         fsGroup: 65534
         runAsUser: 65534
         runAsGroup: 65534
         runAsNonRoot: true
-
-      # CONTAINER SPECIFICATION
+      terminationGracePeriodSeconds: {{ .Values.deploy.terminationGracePeriodSeconds | default 60 }}
       containers:
       - name: {{ .Chart.Name }}-api-server
         image: {{ .Values.deploy.image | default "iamnilotpal/k8s-demo:latest" }}
@@ -73,8 +50,6 @@ spec:
           runAsUser: 65534
           runAsGroup: 65534
           runAsNonRoot: true
-
-        # ENVIRONMENT VARIABLES
         env:
         # --------------- SERVER CONFIGURATION ---------------
         - name: SERVER_API_HOST
@@ -187,7 +162,6 @@ spec:
             fieldRef:
               fieldPath: spec.nodeName
 
-        # RESOURCE MANAGEMENT
         resources:
           limits:
             memory: {{ .Values.deploy.resources.limits.memory | default "512Mi" }}
@@ -196,14 +170,11 @@ spec:
             memory: {{ .Values.deploy.resources.requests.memory | default "256Mi" }}
             cpu: {{ .Values.deploy.resources.requests.cpu | default "250m" }}
 
-        # NETWORKING AND PORTS
         ports:
         - name: {{ .Values.deploy.port.name | default "http-api" }}
           protocol: {{ .Values.deploy.port.protocol | default "TCP" }}
           containerPort: {{ .Values.deploy.port.containerPort | default 8080 }}
 
-        # HEALTH CHECK CONFIGURATION
-        # Readiness probe determines if pod should receive traffic.
         readinessProbe:
           httpGet:
             path: /health
@@ -215,7 +186,6 @@ spec:
           successThreshold: 1
           failureThreshold: 10
 
-        # Liveness probe restarts unhealthy containers.
         livenessProbe:
           httpGet:
             path: /health
@@ -226,6 +196,3 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 5
-
-      # Graceful termination period
-      terminationGracePeriodSeconds: {{ .Values.deploy.terminationGracePeriodSeconds | default 60 }}

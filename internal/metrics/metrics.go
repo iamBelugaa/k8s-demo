@@ -58,13 +58,11 @@ func New() *Metrics {
 	}
 }
 
-// RecordHTTPRequest records metrics for an HTTP request.
 func (m *Metrics) RecordHTTPRequest(method, endpoint, statusCode string, duration float64) {
 	m.HTTPRequestsTotal.WithLabelValues(method, endpoint, statusCode).Inc()
 	m.HTTPRequestDuration.WithLabelValues(method, endpoint).Observe(duration)
 }
 
-// RecordDatabaseQuery records metrics for a database query.
 func (m *Metrics) RecordDatabaseQuery(queryType string, duration float64) {
 	m.DatabaseQueryDuration.WithLabelValues(queryType).Observe(duration)
 }
