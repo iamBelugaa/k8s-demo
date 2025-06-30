@@ -13,11 +13,10 @@ metadata:
 spec:
   type: {{ .Values.service.type | default "ClusterIP" }}
   selector:
-      labels:
-        app.kubernetes.io/component: backend-api
-        app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/name: {{ include "helm.name" . }}
-        environment: {{ .Values.global.environment | default "development" | lower }}
+    app.kubernetes.io/component: backend-api
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
   ports:
   - name: http
     port: {{ .Values.service.port | default 80 }}

@@ -80,13 +80,9 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts:
-        - name: jaeger-storage
-          mountPath: /tmp
         - name: jaeger-data
           mountPath: /jaeger
       volumes:
-      - name: jaeger-storage
-        emptyDir: {}
       - name: jaeger-data
         persistentVolumeClaim:
           claimName: {{ include "helm.fullname" . }}-jaeger-pvc
