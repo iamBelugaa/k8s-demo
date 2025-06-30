@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/iamNilotpal/k8s-demo/internal/database"
-	"github.com/iamNilotpal/k8s-demo/internal/metrics"
-	"github.com/iamNilotpal/k8s-demo/internal/tracing"
-	"github.com/iamNilotpal/k8s-demo/pkg/logger"
-	"github.com/iamNilotpal/k8s-demo/pkg/response"
+	"github.com/iamBelugaa/k8s-demo/internal/database"
+	"github.com/iamBelugaa/k8s-demo/internal/metrics"
+	"github.com/iamBelugaa/k8s-demo/internal/tracing"
+	"github.com/iamBelugaa/k8s-demo/pkg/logger"
+	"github.com/iamBelugaa/k8s-demo/pkg/response"
 	"go.opentelemetry.io/otel/attribute"
 )
 

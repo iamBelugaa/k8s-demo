@@ -3,7 +3,7 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/iamNilotpal/k8s-demo/internal/tracing"
+	"github.com/iamBelugaa/k8s-demo/internal/tracing"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"

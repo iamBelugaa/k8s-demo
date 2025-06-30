@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/iamNilotpal/k8s-demo/internal/metrics"
+	"github.com/iamBelugaa/k8s-demo/internal/metrics"
 )
 
 func MetricsMiddleware(metrics *metrics.Metrics) func(next http.Handler) http.Handler {

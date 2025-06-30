@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/iamNilotpal/k8s-demo/internal/config"
-	"github.com/iamNilotpal/k8s-demo/pkg/logger"
+	"github.com/iamBelugaa/k8s-demo/internal/config"
+	"github.com/iamBelugaa/k8s-demo/pkg/logger"
 	_ "github.com/lib/pq"
 )
 

@@ -7,10 +7,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	health_handlers "github.com/iamNilotpal/k8s-demo/internal/handlers/health"
-	"github.com/iamNilotpal/k8s-demo/internal/metrics"
-	"github.com/iamNilotpal/k8s-demo/internal/middlewares"
-	"github.com/iamNilotpal/k8s-demo/pkg/logger"
+	health_handlers "github.com/iamBelugaa/k8s-demo/internal/handlers/health"
+	"github.com/iamBelugaa/k8s-demo/internal/metrics"
+	"github.com/iamBelugaa/k8s-demo/internal/middlewares"
+	"github.com/iamBelugaa/k8s-demo/pkg/logger"
 )
 
 type Config struct {

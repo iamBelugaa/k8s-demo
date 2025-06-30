@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/iamNilotpal/k8s-demo/internal/config"
-	"github.com/iamNilotpal/k8s-demo/internal/server"
-	"github.com/iamNilotpal/k8s-demo/pkg/logger"
+	"github.com/iamBelugaa/k8s-demo/internal/config"
+	"github.com/iamBelugaa/k8s-demo/internal/server"
+	"github.com/iamBelugaa/k8s-demo/pkg/logger"
 	"github.com/joho/godotenv"
 )
 

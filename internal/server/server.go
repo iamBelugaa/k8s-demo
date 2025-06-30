@@ -7,12 +7,12 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/iamNilotpal/k8s-demo/internal/config"
-	"github.com/iamNilotpal/k8s-demo/internal/database"
-	"github.com/iamNilotpal/k8s-demo/internal/handlers"
-	"github.com/iamNilotpal/k8s-demo/internal/metrics"
-	"github.com/iamNilotpal/k8s-demo/internal/tracing"
-	"github.com/iamNilotpal/k8s-demo/pkg/logger"
+	"github.com/iamBelugaa/k8s-demo/internal/config"
+	"github.com/iamBelugaa/k8s-demo/internal/database"
+	"github.com/iamBelugaa/k8s-demo/internal/handlers"
+	"github.com/iamBelugaa/k8s-demo/internal/metrics"
+	"github.com/iamBelugaa/k8s-demo/internal/tracing"
+	"github.com/iamBelugaa/k8s-demo/pkg/logger"
 )
 
 type Server struct {
