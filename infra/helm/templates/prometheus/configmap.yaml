@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helm.fullname" . }}-prometheus-config
+  labels:
+    app.kubernetes.io/component: prometheus
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: {{ .Values.observability.prometheus.scrapeInterval | default "15s" }}
+      evaluation_interval: {{ .Values.observability.prometheus.scrapeInterval | default "15s" }}
+      external_labels:
+        environment: {{ .Values.global.environment | default "development" }}
+        cluster: {{ .Values.global.clusterName | default "k8s-demo-cluster" }}
+
+    scrape_configs:
+      - job_name: '{{ include "helm.name" . }}-app'
+        static_configs:
+          - targets: ['{{ include "helm.fullname" . }}-api-service:{{ .Values.service.port }}']
+        metrics_path: '/metrics'
+        scrape_interval: 15s
+        relabel_configs:
+          - target_label: application
+            replacement: {{ include "helm.name" . }}
+          - target_label: instance_type
+            replacement: application
+
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+        relabel_configs:
+          - target_label: instance_type
+            replacement: prometheus

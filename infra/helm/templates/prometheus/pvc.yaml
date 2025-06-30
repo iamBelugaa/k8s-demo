@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "helm.fullname" . }}-prometheus-pvc
+  labels:
+    app.kubernetes.io/component: prometheus
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.observability.prometheus.storage | default "10Gi" }}
