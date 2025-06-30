@@ -2,23 +2,65 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "helm.fullname" . }}-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /health
+  labels:
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
 spec:
+  ingressClassName: {{ .Values.ingress.className }}
   rules:
-  - http:
-      paths:
-      - path: /
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: {{ include "helm.fullname" . }}-svc
-            port:
-              number: {{ .Values.service.port }}
-      - pathType: Prefix
-        path: "/health"
-        backend:
-          service:
-            name: {{ include "helm.fullname" . }}-svc
-            port:
-              number: {{ .Values.service.port }}
+    # Main application
+    - host: {{ (index .Values.ingress.hosts 0).host }}
+      http:
+        paths:
+        {{- range (index .Values.ingress.hosts 0).paths }}
+        - path: {{ .path }}
+          pathType: {{ .pathType }}
+          backend:
+            service:
+              name: {{ include "helm.fullname" $ }}-api-service
+              port:
+                number: {{ $.Values.service.port }}
+        {{- end }}
+
+    # Grafana
+    - host: {{ (index .Values.ingress.hosts 1).host }}
+      http:
+        paths:
+        {{- range (index .Values.ingress.hosts 1).paths }}
+        - path: {{ .path }}
+          pathType: {{ .pathType }}
+          backend:
+            service:
+              name: {{ include "helm.fullname" $ }}-grafana-svc
+              port:
+                number: 3000
+        {{- end }}
+
+    # Prometheus
+    - host: {{ (index .Values.ingress.hosts 2).host }}
+      http:
+        paths:
+        {{- range (index .Values.ingress.hosts 2).paths }}
+        - path: {{ .path }}
+          pathType: {{ .pathType }}
+          backend:
+            service:
+              name: {{ include "helm.fullname" $ }}-prometheus-svc
+              port:
+                number: 9090
+        {{- end }}
+
+    # Jaeger
+    - host: {{ (index .Values.ingress.hosts 3).host }}
+      http:
+        paths:
+        {{- range (index .Values.ingress.hosts 3).paths }}
+        - path: {{ .path }}
+          pathType: {{ .pathType }}
+          backend:
+            service:
+              name: {{ include "helm.fullname" $ }}-jaeger-svc
+              port:
+                number: 16686
+        {{- end }}
