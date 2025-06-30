@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "helm.fullname" . }}-grafana-svc
+  labels:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http

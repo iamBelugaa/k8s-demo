@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helm.fullname" . }}-grafana-config
+  labels:
+    app.kubernetes.io/component: grafana
+    app.kubernetes.io/name: {{ include "helm.name" . }}
+    environment: {{ .Values.global.environment | default "development" | lower }}
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        editable: true
+        isDefault: true
+        url: http://{{ include "helm.fullname" . }}-prometheus-svc:9090
+        jsonData:
+          timeInterval: 30s
+          queryTimeout: 300s
